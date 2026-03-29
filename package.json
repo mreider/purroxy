@@ -1,0 +1,88 @@
+{
+  "name": "purroxy",
+  "version": "0.2.0",
+  "description": "Record what you do on any website. Securely automate it forever.",
+  "main": "dist/main/main/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
+    "dev:renderer": "vite --config vite.config.ts",
+    "dev:main": "tsc && electron .",
+    "build:renderer": "vite build --config vite.config.ts",
+    "build:main": "tsc",
+    "build": "npm run build:main && npm run build:renderer",
+    "start": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pack": "npm run build && electron-builder --mac --win --linux",
+    "pack:mac": "npm run build && electron-builder --mac",
+    "pack:win": "npm run build && electron-builder --win",
+    "pack:linux": "npm run build && electron-builder --linux"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mreider/purroxy.git"
+  },
+  "keywords": [],
+  "author": "Matthew Reider",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mreider/purroxy/issues"
+  },
+  "homepage": "https://github.com/mreider/purroxy#readme",
+  "build": {
+    "appId": "com.purroxy.app",
+    "productName": "Purroxy",
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "build/**/*"
+    ],
+    "mac": {
+      "icon": "build/icon.icns",
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Development"
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/archiver": "^7.0.0",
+    "archiver": "^7.0.1",
+    "playwright": "^1.58.2",
+    "zod": "^3.25.64"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "daisyui": "^5.5.19",
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1",
+    "jsdom": "^29.0.1",
+    "postcss": "^8.5.8",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.2",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
+    "vitest": "^4.1.2"
+  },
+  "types": "./dist/main/main/main.d.ts"
+}

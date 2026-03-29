@@ -1,0 +1,20 @@
+title: Purroxy Docs
+description: Secure website automation for Claude Desktop
+url: https://docs.purroxy.com
+baseurl: ""
+remote_theme: just-the-docs/just-the-docs
+
+plugins:
+  - jekyll-remote-theme
+
+aux_links:
+  "Download": "https://purroxy.com"
+  "GitHub": "https://github.com/mreider/purroxy"
+
+nav_order: 1
+
+color_scheme: purroxy
+
+search_enabled: true
+
+footer_content: "Purroxy. Your credentials never leave your machine."

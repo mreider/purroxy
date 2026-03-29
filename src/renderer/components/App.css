@@ -1,0 +1,120 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* Light theme */
+@plugin "daisyui/theme" {
+  name: "purroxy-light";
+  default: true;
+  color-scheme: light;
+  prefersdark: false;
+
+  --color-base-100: oklch(98% 0 0);
+  --color-base-200: oklch(95% 0 0);
+  --color-base-300: oklch(90% 0 0);
+  --color-base-content: oklch(20% 0 0);
+
+  --color-primary: oklch(55% 0.2 255);
+  --color-primary-content: oklch(100% 0 0);
+
+  --color-secondary: oklch(90% 0.01 250);
+  --color-secondary-content: oklch(40% 0.01 250);
+
+  --color-accent: oklch(93% 0 0);
+  --color-accent-content: oklch(20% 0 0);
+
+  --color-neutral: oklch(92% 0 0);
+  --color-neutral-content: oklch(45% 0 0);
+
+  --color-info: oklch(55% 0.2 255);
+  --color-info-content: oklch(100% 0 0);
+  --color-success: oklch(55% 0.17 152);
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(75% 0.15 85);
+  --color-warning-content: oklch(15% 0 0);
+  --color-error: oklch(55% 0.22 29);
+  --color-error-content: oklch(100% 0 0);
+
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.125rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Dark theme */
+@plugin "daisyui/theme" {
+  name: "purroxy-dark";
+  default: false;
+  color-scheme: dark;
+  prefersdark: true;
+
+  --color-base-100: oklch(12.9% 0 0);
+  --color-base-200: oklch(16.8% 0 0);
+  --color-base-300: oklch(24% 0 0);
+  --color-base-content: oklch(91% 0 0);
+
+  --color-primary: oklch(62% 0.19 255);
+  --color-primary-content: oklch(100% 0 0);
+
+  --color-secondary: oklch(22% 0.02 250);
+  --color-secondary-content: oklch(65% 0.01 250);
+
+  --color-accent: oklch(24% 0 0);
+  --color-accent-content: oklch(91% 0 0);
+
+  --color-neutral: oklch(18% 0 0);
+  --color-neutral-content: oklch(58% 0 0);
+
+  --color-info: oklch(62% 0.19 255);
+  --color-info-content: oklch(100% 0 0);
+  --color-success: oklch(68% 0.17 152);
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(80% 0.15 85);
+  --color-warning-content: oklch(15% 0 0);
+  --color-error: oklch(63% 0.22 29);
+  --color-error-content: oklch(100% 0 0);
+
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.125rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Recording animation */
+@keyframes recording-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-recording {
+  animation: recording-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scrollbars */
+.scrollbar-thin::-webkit-scrollbar { width: 5px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: oklch(50% 0 0 / 0.15); border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: oklch(50% 0 0 / 0.25); }
+
+/* Response blocks */
+.response-body { white-space: pre-wrap; word-break: break-word; }
+
+/* Invert illustrations in dark mode */
+[data-theme="purroxy-dark"] .illustration-invert {
+  filter: invert(1) hue-rotate(180deg);
+}
+[data-theme="purroxy-dark"] .illustration-bg {
+  background-color: oklch(16.8% 0 0);
+}
+
+/* Also handle system dark when no data-theme is set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .illustration-invert {
+    filter: invert(1) hue-rotate(180deg);
+  }
+  :root:not([data-theme]) .illustration-bg {
+    background-color: oklch(16.8% 0 0);
+  }
+}

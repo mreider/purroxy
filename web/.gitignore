@@ -1,0 +1,10 @@
+.next/
+node_modules/
+data/purroxy.db
+data/purroxy.db-shm
+data/purroxy.db-wal
+data/nanp.db
+data/nanp.db-shm
+data/nanp.db-wal
+data/packages/
+.env
