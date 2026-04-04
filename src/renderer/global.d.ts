@@ -88,7 +88,7 @@ declare global {
 
       // Submissions
       submitSite: (profileId: string) => Promise<{ success?: boolean; error?: string; submissionId?: string; githubPr?: string | null }>;
-      getSubmissionStatus: (profileId: string) => Promise<{ submitted: boolean; status?: string; rejectionReason?: string; submittedAt?: string; reviewedAt?: string }>;
+      getSubmissionStatus: (profileId: string) => Promise<{ submitted: boolean; status?: string; rejectionReason?: string; submittedAt?: string; reviewedAt?: string; githubPrUrl?: string }>;
 
       // Account
       canUse: () => Promise<{ allowed: boolean; reason?: string }>;

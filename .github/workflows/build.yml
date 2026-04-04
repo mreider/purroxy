@@ -132,6 +132,11 @@ jobs:
         with:
           subject-path: 'artifacts/checksums.txt'
 
+      - name: Generate version.json
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "{\"version\":\"${VERSION}\",\"date\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"dmg\":\"Purroxy-${VERSION}-arm64.dmg\",\"exe\":\"Purroxy.Setup.${VERSION}.exe\",\"appimage\":\"Purroxy-${VERSION}.AppImage\"}" > artifacts/version.json
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -140,50 +145,5 @@ jobs:
             artifacts/**/*.exe
             artifacts/**/*.AppImage
             artifacts/checksums.txt
+            artifacts/version.json
           generate_release_notes: true
-
-      - name: Upload to DO Spaces
-        env:
-          DO_SPACES_KEY: ${{ secrets.DO_SPACES_KEY }}
-          DO_SPACES_SECRET: ${{ secrets.DO_SPACES_SECRET }}
-        run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq s3cmd
-
-          cat > ~/.s3cfg << EOF
-          [default]
-          access_key = $DO_SPACES_KEY
-          secret_key = $DO_SPACES_SECRET
-          host_base = nyc3.digitaloceanspaces.com
-          host_bucket = %(bucket)s.nyc3.digitaloceanspaces.com
-          EOF
-
-          VERSION="${GITHUB_REF#refs/tags/}"
-
-          find artifacts -type f \( -name "*.dmg" -o -name "*.exe" -o -name "*.AppImage" \) | while read f; do
-            BASENAME=$(basename "$f")
-            s3cmd put "$f" "s3://purroxy-releases/${VERSION}/${BASENAME}" --acl-public
-            s3cmd put "$f" "s3://purroxy-releases/latest/${BASENAME}" --acl-public
-          done
-
-          # Upload checksums
-          s3cmd put artifacts/checksums.txt "s3://purroxy-releases/${VERSION}/checksums.txt" --acl-public
-          s3cmd put artifacts/checksums.txt "s3://purroxy-releases/latest/checksums.txt" --acl-public
-
-      - name: Update version.json
-        env:
-          DO_SPACES_KEY: ${{ secrets.DO_SPACES_KEY }}
-          DO_SPACES_SECRET: ${{ secrets.DO_SPACES_SECRET }}
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
-
-          cat > ~/.s3cfg << EOF
-          [default]
-          access_key = $DO_SPACES_KEY
-          secret_key = $DO_SPACES_SECRET
-          host_base = nyc3.digitaloceanspaces.com
-          host_bucket = %(bucket)s.nyc3.digitaloceanspaces.com
-          EOF
-
-          echo "{\"version\":\"${VERSION}\",\"date\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"dmg\":\"Purroxy-${VERSION}-arm64.dmg\",\"exe\":\"Purroxy Setup ${VERSION}.exe\",\"appimage\":\"Purroxy-${VERSION}.AppImage\"}" > /tmp/version.json
-
-          s3cmd put /tmp/version.json "s3://purroxy-releases/latest/version.json" --acl-public -m "application/json"

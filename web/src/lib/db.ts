@@ -97,6 +97,22 @@ export function initSchema(): void {
       created_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS sites (
+      id TEXT PRIMARY KEY,
+      slug TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      site_url TEXT NOT NULL,
+      capabilities TEXT,
+      author TEXT,
+      profile_id TEXT,
+      download_count INTEGER DEFAULT 0,
+      average_rating REAL,
+      published_at TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS bug_reports (
       id TEXT PRIMARY KEY,
       profile_id TEXT NOT NULL REFERENCES profiles(id),
@@ -135,6 +151,9 @@ export function initSchema(): void {
     "ALTER TABLE users ADD COLUMN github_username TEXT",
     "ALTER TABLE users ADD COLUMN contributor_status TEXT DEFAULT 'none'",
     "ALTER TABLE submissions ADD COLUMN github_pr_number INTEGER",
+    "ALTER TABLE submissions ADD COLUMN github_pr_url TEXT",
+    "ALTER TABLE submissions ADD COLUMN site_slug TEXT",
+    "ALTER TABLE submissions ADD COLUMN submission_type TEXT DEFAULT 'new_site'",
     "ALTER TABLE users ADD COLUMN subscription_stripe_id TEXT",
   ];
   for (const sql of migrations) {
@@ -142,6 +161,9 @@ export function initSchema(): void {
   }
 
   db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_sites_slug ON sites(slug);
+    CREATE INDEX IF NOT EXISTS idx_submissions_github_pr ON submissions(github_pr_number);
+    CREATE INDEX IF NOT EXISTS idx_submissions_site ON submissions(site_slug);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_users_display_name ON users(display_name) WHERE display_name IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_profiles_creator ON profiles(creator_id);
     CREATE INDEX IF NOT EXISTS idx_user_profiles_user ON user_profiles(user_id);

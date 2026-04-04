@@ -192,26 +192,6 @@ export function createProfileSubmission(
   return { profileId, submissionId, validationResult: validation };
 }
 
-export function approveSubmission(submissionId: string, reviewerId: string): void {
-  const db = getDb();
-  const submission = db.prepare('SELECT * FROM submissions WHERE id = ?').get(submissionId) as any;
-  if (!submission) throw new Error('Submission not found');
-
-  db.prepare(`
-    UPDATE submissions SET status = 'approved', reviewed_by = ?, reviewed_at = datetime('now') WHERE id = ?
-  `).run(reviewerId, submissionId);
-
-  db.prepare(`
-    UPDATE profiles SET status = 'approved', published_at = datetime('now'), updated_at = datetime('now') WHERE id = ?
-  `).run(submission.profile_id);
-}
-
-export function rejectSubmission(submissionId: string, reviewerId: string, reason: string): void {
-  const db = getDb();
-  db.prepare(`
-    UPDATE submissions SET status = 'rejected', rejection_reason = ?, reviewed_by = ?, reviewed_at = datetime('now') WHERE id = ?
-  `).run(reason, reviewerId, submissionId);
-}
 
 export function incrementDownloadCount(profileId: string): void {
   const db = getDb();

@@ -1,7 +1,5 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 
 interface Site {
   id: string;
@@ -25,25 +23,24 @@ interface Review {
   email: string;
 }
 
-export default function SiteDetailPage() {
-  const params = useParams();
-  const siteId = params?.profileId as string;
+export default function MarketplaceDetail() {
+  const { slug } = useParams<{ slug: string }>();
 
   const [site, setSite] = useState<Site | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!siteId) return;
+    if (!slug) return;
     Promise.all([
-      fetch(`/api/sites/${siteId}`).then((r) => r.json()),
-      fetch(`/api/reviews?profileId=${siteId}`).then((r) => r.json()),
-    ]).then(([siteData, reviewData]) => {
+      fetch(`/api/sites/${slug}`).then((r) => r.json()),
+      fetch(`/api/reviews?profileId=${slug}`).then((r) => r.json()),
+    ]).then(([siteData, reviewData]: [any, any]) => {
       setSite(siteData.site || null);
       setReviews(reviewData.reviews || []);
       setLoading(false);
     });
-  }, [siteId]);
+  }, [slug]);
 
   if (loading) {
     return (

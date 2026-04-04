@@ -9,7 +9,7 @@ export default function Library() {
   const [loading, setLoading] = useState(true);
   const [expandedSite, setExpandedSite] = useState<string | null>(null);
   const [mcpInstalled, setMcpInstalled] = useState<boolean | null>(null);
-  const [submissions, setSubmissions] = useState<Record<string, { submitted: boolean; status?: string; rejectionReason?: string; submittedAt?: string }>>({});
+  const [submissions, setSubmissions] = useState<Record<string, { submitted: boolean; status?: string; rejectionReason?: string; submittedAt?: string; githubPrUrl?: string }>>({});
   const [showSubmitModal, setShowSubmitModal] = useState<string | null>(null);
   const [showRejectionInfo, setShowRejectionInfo] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export default function Library() {
   const handleSubmitToLibrary = async (profileId: string) => {
     setSubmitting(true); setShowSubmitModal(null);
     const result = await window.purroxy.submitSite(profileId);
-    if (result.success) { showFeedback('success', 'Submitted for review. You will receive an email when it is reviewed.'); setSubmissions((prev) => ({ ...prev, [profileId]: { submitted: true, status: 'pending', submittedAt: new Date().toISOString() } })); }
+    if (result.success) { showFeedback('success', 'Submitted for review. You will receive an email when it is reviewed.'); setSubmissions((prev) => ({ ...prev, [profileId]: { submitted: true, status: 'pending', submittedAt: new Date().toISOString(), githubPrUrl: result.githubPr || undefined } })); }
     else showFeedback('error', result.error || 'Submission failed.');
     setSubmitting(false);
   };
@@ -198,7 +198,13 @@ export default function Library() {
                     {/* Badges */}
                     <div className="flex items-center gap-1.5 mt-1">
                       {pub && <span className="badge badge-success badge-xs">Public</span>}
-                      {sub?.status === 'pending' && <span className="badge badge-ghost badge-xs text-base-content/40">In review</span>}
+                      {sub?.status === 'pending' && (
+                        sub?.githubPrUrl ? (
+                          <span className="badge badge-ghost badge-xs text-base-content/40 cursor-pointer hover:text-primary" onClick={(e) => { e.stopPropagation(); window.open(sub.githubPrUrl, '_blank'); }}>In review (view PR)</span>
+                        ) : (
+                          <span className="badge badge-ghost badge-xs text-base-content/40">In review</span>
+                        )
+                      )}
                       <span className="text-[10px] text-base-content/30">{caps.length} capabilit{caps.length !== 1 ? 'ies' : 'y'}</span>
                     </div>
 

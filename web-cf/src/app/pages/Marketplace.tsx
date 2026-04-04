@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 
 interface Site {
@@ -28,7 +26,7 @@ declare global {
   }
 }
 
-export default function MarketplacePage() {
+export default function Marketplace() {
   const [sites, setSites] = useState<Site[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
@@ -44,7 +42,6 @@ export default function MarketplacePage() {
       }
     };
     checkDesktop();
-    // Desktop injects purroxyDesktop after dom-ready, so listen for the signal
     window.addEventListener('purroxy-desktop-ready', checkDesktop);
     window.addEventListener('purroxy-profile-installed', checkDesktop);
     return () => {
@@ -63,7 +60,7 @@ export default function MarketplacePage() {
     if (search) params.set('search', search);
 
     const res = await fetch(`/api/sites?${params}`);
-    const data = await res.json();
+    const data = (await res.json()) as { sites: Site[]; total: number };
     setSites(data.sites);
     setTotal(data.total);
     setLoading(false);

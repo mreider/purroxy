@@ -89,7 +89,7 @@ function AccountPanel() {
     try {
       const endpoint = loginMode === 'signup' ? '/api/auth/signup' : '/api/auth/login';
       const body: any = { email: loginEmail.trim(), password: loginPassword };
-      if (loginMode === 'signup' && loginName.trim()) body.displayName = loginName.trim();
+      if (loginMode === 'signup' && loginName.trim()) body.username = loginName.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
       const res = await fetch(`https://purroxy.com${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (data.needsVerification) { setLoginError(`Verification email sent to ${loginEmail.trim()}. Click the link, then log in.`); setLoginMode('login'); setLoginLoading(false); return; }
@@ -292,8 +292,9 @@ function AccountPanel() {
           <form className="space-y-3" onSubmit={handleLogin}>
             {loginMode === 'signup' && (
               <label className="form-control w-full">
-                <div className="label"><span className="label-text text-xs">Display name <span className="text-base-content/30">(optional)</span></span></div>
-                <input type="text" className="input input-bordered w-full" value={loginName} onChange={(e) => setLoginName(e.target.value)} />
+                <div className="label"><span className="label-text text-xs">Username <span className="text-base-content/30">(public, permanent)</span></span></div>
+                <input type="text" className="input input-bordered w-full" value={loginName} onChange={(e) => setLoginName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="3-30 chars, letters, numbers, hyphens" />
+                <div className="label"><span className="label-text-alt text-[10px] text-base-content/40">Your username will appear publicly on any sites you contribute.</span></div>
               </label>
             )}
             <label className="form-control w-full">

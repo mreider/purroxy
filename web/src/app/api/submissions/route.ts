@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initSchema, getDb } from '@/lib/db';
 import { getUserByLicenseKey } from '@/lib/auth';
 import { createProfileSubmission } from '@/lib/profiles';
-import { createSitePR, isGithubConfigured } from '@/lib/github';
+import { createSitePR, isGithubConfigured, getPRState, getPRCloseComment } from '@/lib/github';
+import { processApproval, processRejection } from '@/app/api/github/webhook/route';
 
 initSchema();
 
-// GET: check submission status for a profile
+// GET: check submission status for a profile (with polling fallback)
 export async function GET(request: NextRequest) {
   const licenseKey = request.headers.get('authorization')?.replace('Bearer ', '');
   if (!licenseKey) return NextResponse.json({ error: 'License key required.' }, { status: 401 });
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
 
   const db = getDb();
   const submission = db.prepare(`
-    SELECT id, status, rejection_reason, created_at, reviewed_at
+    SELECT id, status, rejection_reason, created_at, reviewed_at, github_pr_url, github_pr_number, site_slug, submission_type
     FROM submissions
     WHERE profile_id = ? AND submitter_id = ?
     ORDER BY created_at DESC
@@ -28,6 +29,24 @@ export async function GET(request: NextRequest) {
 
   if (!submission) return NextResponse.json({ submitted: false });
 
+  // Polling fallback: if still pending and we have a PR number, check GitHub
+  if (submission.status === 'pending' && submission.github_pr_number) {
+    const prState = await getPRState(submission.github_pr_number);
+    if (prState && prState.state === 'closed') {
+      if (prState.merged) {
+        await processApproval(submission);
+        submission.status = 'approved';
+        submission.reviewed_at = prState.mergedAt;
+      } else {
+        const reason = await getPRCloseComment(submission.github_pr_number);
+        await processRejection(submission, reason);
+        submission.status = 'rejected';
+        submission.rejection_reason = reason;
+        submission.reviewed_at = prState.closedAt;
+      }
+    }
+  }
+
   return NextResponse.json({
     submitted: true,
     submissionId: submission.id,
@@ -35,6 +54,8 @@ export async function GET(request: NextRequest) {
     rejectionReason: submission.rejection_reason,
     submittedAt: submission.created_at,
     reviewedAt: submission.reviewed_at,
+    githubPrUrl: submission.github_pr_url,
+    submissionType: submission.submission_type,
   });
 }
 
@@ -71,31 +92,42 @@ export async function POST(request: NextRequest) {
     }, { status: 422 });
   }
 
+  // Detect submission type: check if a site with this URL already exists
+  const db = getDb();
+  const profile = JSON.parse(profileJson);
+  const siteBaseUrl = profile.siteBaseUrl || '';
+  const existingSite = siteBaseUrl
+    ? db.prepare('SELECT slug FROM sites WHERE site_url = ?').get(siteBaseUrl) as any
+    : null;
+
+  const submissionType = existingSite ? 'add_capability' : 'new_site';
+  const siteSlug = existingSite?.slug || null;
+
   // Auto-create a GitHub PR for the site submission
   let prUrl: string | null = null;
+  let prSlug: string | null = siteSlug;
   if (isGithubConfigured()) {
-    const profile = JSON.parse(profileJson);
-    const db = getDb();
     const userRow = db.prepare('SELECT github_username FROM users WHERE id = ?').get(user.id) as any;
 
     const prResult = await createSitePR({
       siteName: profile.name || profile.siteName || 'site',
       displayName: profile.name || profile.siteName,
       description: profile.description || `Site: ${profile.siteName}`,
-      siteUrl: profile.siteBaseUrl || '',
+      siteUrl: siteBaseUrl,
       capabilities: (body.capabilities as string[]) || [],
       submitterEmail: user.email,
       submitterGithub: userRow?.github_username || undefined,
       submissionId: result.submissionId,
       profileJson,
+      existingSiteSlug: existingSite?.slug || undefined,
     });
 
     if (prResult) {
       prUrl = prResult.prUrl;
-      // Store the PR number on the submission for later merge/close
+      prSlug = prResult.slug;
       db.prepare(`
-        UPDATE submissions SET github_pr_number = ? WHERE id = ?
-      `).run(prResult.prNumber, result.submissionId);
+        UPDATE submissions SET github_pr_number = ?, github_pr_url = ?, site_slug = ?, submission_type = ? WHERE id = ?
+      `).run(prResult.prNumber, prResult.prUrl, prResult.slug, submissionType, result.submissionId);
     }
   }
 
@@ -105,5 +137,8 @@ export async function POST(request: NextRequest) {
     status: 'pending',
     validation: result.validationResult,
     githubPr: prUrl,
+    githubPrUrl: prUrl,
+    submissionType,
+    siteSlug: prSlug,
   }, { status: 201 });
 }

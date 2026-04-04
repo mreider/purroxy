@@ -1,0 +1,17 @@
+name = "purroxy-web"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "purroxy-db"
+database_id = "a57178fb-7789-4805-b86f-9b9e45c6793f"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "purroxy-packages"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "8e6505f9af9942d7a85915fd9ffc9455"
