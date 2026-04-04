@@ -26,6 +26,7 @@ export default function BuildChat({ existingProfileId, editCapabilityId, onCompl
   const [thinking, setThinking] = useState(false);
   const [editCapability, setEditCapability] = useState<{ name: string; description: string } | null>(null);
   const [paramOverrides, setParamOverrides] = useState<{ stepIndex: number; isParameter: boolean; parameterName: string }[]>([]);
+  const [activeTab, setActiveTab] = useState<'chat' | 'browser'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const webviewContainerRef = useRef<HTMLDivElement>(null);
   const webviewRef = useRef<any>(null);
@@ -34,6 +35,11 @@ export default function BuildChat({ existingProfileId, editCapabilityId, onCompl
   useEffect(() => {
     window.purroxy.getApiKey().then((key) => setHasApiKey(key !== null));
   }, []);
+
+  // Auto-switch to browser tab when showBrowser becomes true
+  useEffect(() => { if (showBrowser) setActiveTab('browser'); }, [showBrowser]);
+  // Auto-switch back to chat when browser is done
+  useEffect(() => { if (!showBrowser && browserContext) setActiveTab('chat'); }, [showBrowser, browserContext]);
 
   // Load existing profile context when editing a capability
   useEffect(() => {
@@ -377,18 +383,6 @@ export default function BuildChat({ existingProfileId, editCapabilityId, onCompl
       </div>
     );
   } else {
-    const [activeTab, setActiveTab] = React.useState<'chat' | 'browser'>('chat');
-
-    // Auto-switch to browser when showBrowser becomes true
-    React.useEffect(() => {
-      if (showBrowser) setActiveTab('browser');
-    }, [showBrowser]);
-
-    // Auto-switch back to chat when browser is done
-    React.useEffect(() => {
-      if (!showBrowser && browserContext) setActiveTab('chat');
-    }, [showBrowser, browserContext]);
-
     content = (
       <div className="flex flex-col h-full">
         {/* Tab bar */}
@@ -475,7 +469,7 @@ export default function BuildChat({ existingProfileId, editCapabilityId, onCompl
           </form>
         </div>
 
-        {/* Browser panel */}
+        {/* Browser panel - webview container is rendered outside content, referenced here */}
         <div className={`flex-1 min-h-0 flex flex-col ${activeTab !== 'browser' ? 'hidden' : ''}`}>
           {showBrowser && (
             <div className="px-3 py-1.5 bg-warning/10 border-b border-warning/30 shrink-0">
@@ -486,7 +480,7 @@ export default function BuildChat({ existingProfileId, editCapabilityId, onCompl
               </p>
             </div>
           )}
-          <div ref={webviewContainerRef} className="flex-1 min-h-0 bg-white" />
+          {/* webview container is the persistent div rendered at root level below */}
           {!showBrowser && (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-sm text-base-content/30">Browser will appear here when needed</p>
@@ -497,11 +491,19 @@ export default function BuildChat({ existingProfileId, editCapabilityId, onCompl
     );
   }
 
+  // Webview is always in the DOM so webContentsId is available before agent starts.
+  // When browser tab is active, it fills the browser panel. Otherwise it's invisible.
+  const webviewVisible = started && activeTab === 'browser';
+
   return (
     <div className="relative h-full flex flex-col">
       <div className="flex-1 min-h-0">
         {content}
       </div>
+      <div
+        ref={webviewContainerRef}
+        className={webviewVisible ? 'absolute inset-0 top-[41px] z-10 bg-white' : 'absolute w-0 h-0 overflow-hidden'}
+      />
     </div>
   );
 }
