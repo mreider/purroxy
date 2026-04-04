@@ -62,6 +62,16 @@ export default function Pricing() {
         If it works and helps people, it qualifies.
       </p>
 
+      <h3>If I pay while my submission is in review, do I get a refund?</h3>
+      <p>
+        No. Contributor status stops future billing the moment your site is
+        approved, but we do not refund charges that already went through.
+        The monthly cost is $3.89 and reviews take 2 to 4 days, so the
+        overlap is small. Think of it this way: free lifetime access is a
+        genuinely generous thank-you for contributing. We just ask that the
+        modest fee that keeps things running stays as-is.
+      </p>
+
       <h3>Can I export my data?</h3>
       <p>
         Yes. Go to Settings &gt; Account and click <strong>Export backup</strong>.
